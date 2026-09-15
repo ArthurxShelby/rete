@@ -139,47 +139,47 @@ if "hardware_dettagli" not in st.session_state:
 
 if "dati_caricati_da_supabase" not in st.session_state:
   st.session_state.caricamento_in_corso = True
-  
+
   if supabase is not None:
     try:
-      # Test di lettura diretto per capire cosa restituisce Supabase
-      response = supabase.table("inventario").select("*").execute()
-      
-      st.write("🔍 **Debug Risposta Supabase:**", response)
-      
-      data = getattr(response, "data", [])
-      st.write(f"📊 **Record trovati:** {len(data)}")
-      
-      if data:
-        st.write("📝 **Primo record letto:**", data[0])
-        
-        for row in data:
-          ip_db = str(row.get("Indirizzo IP") or row.get("indirizzo_ip") or row.get("ip") or "").strip()
-          if ip_db:
-            nome_db = pulisci_valore(row.get("Nome Dispositivo") or row.get("nome_dispositivo"))
-            stato_db = "🔴 Occupato" if nome_db else (pulisci_valore(row.get("Stato") or row.get("stato")) or "🟢 Libero")
-            proc_db = pulisci_valore(row.get("Processore e anno") or row.get("Processore") or row.get("processore"))
-            
-            st.session_state.hardware_dettagli[ip_db] = {
-                "Nome Dispositivo": nome_db,
-                "Tipologia": pulisci_valore(row.get("Tipologia") or row.get("tipologia")),
-                "Stato": stato_db,
-                "Marca": pulisci_valore(row.get("Marca") or row.get("marca")),
-                "Modello": pulisci_valore(row.get("Modello") or row.get("modello")),
-                "Processore": proc_db,
-                "S.O.": pulisci_valore(row.get("S.O.") or row.get("s_o") or row.get("so")),
-                "RAM": pulisci_valore(row.get("RAM") or row.get("ram")),
-                "Tipo HD": pulisci_valore(row.get("Tipo HD") or row.get("tipo_hd")),
-                "Capienza HD": pulisci_valore(row.get("Capienza HD") or row.get("capienza_hd")),
-                "Garanzia": pulisci_valore(row.get("Garanzia") or row.get("garanzia")),
-            }
-      else:
-        st.warning("⚠️ La connessione funziona, ma la tabella 'inventario' restituisce 0 righe (è vuota).")
+      all_rows = []
+      batch_size = 1000
+      start = 0
+
+      while True:
+        response = supabase.table("inventario").select("*").range(start, start + batch_size - 1).execute()
+        data = getattr(response, "data", None)
+        if not data:
+          break
+
+        all_rows.extend(data)
+        if len(data) < batch_size:
+          break
+        start += batch_size
+
+      for row in all_rows:
+        ip_db = str(row.get("Indirizzo IP") or row.get("indirizzo_ip") or row.get("ip") or "").strip()
+        if ip_db:
+          nome_db = pulisci_valore(row.get("Nome Dispositivo") or row.get("nome_dispositivo"))
+          stato_db = "🔴 Occupato" if nome_db else (pulisci_valore(row.get("Stato") or row.get("stato")) or "🟢 Libero")
+          proc_db = pulisci_valore(row.get("Processore e anno") or row.get("Processore") or row.get("processore"))
+
+          st.session_state.hardware_dettagli[ip_db] = {
+              "Nome Dispositivo": nome_db,
+              "Tipologia": pulisci_valore(row.get("Tipologia") or row.get("tipologia")),
+              "Stato": stato_db,
+              "Marca": pulisci_valore(row.get("Marca") or row.get("marca")),
+              "Modello": pulisci_valore(row.get("Modello") or row.get("modello")),
+              "Processore": proc_db,
+              "S.O.": pulisci_valore(row.get("S.O.") or row.get("s_o") or row.get("so")),
+              "RAM": pulisci_valore(row.get("RAM") or row.get("ram")),
+              "Tipo HD": pulisci_valore(row.get("Tipo HD") or row.get("tipo_hd")),
+              "Capienza HD": pulisci_valore(row.get("Capienza HD") or row.get("capienza_hd")),
+              "Garanzia": pulisci_valore(row.get("Garanzia") or row.get("garanzia")),
+          }
 
     except Exception as e:
-      st.error(f"❌ Errore durante la query: {e}")
-  else:
-    st.error("❌ Oggetto supabase è None.")
+      st.error(f"❌ Errore durante il caricamento da Supabase: {e}")
 
   st.session_state.dati_caricati_da_supabase = True
   st.session_state.caricamento_in_corso = False
