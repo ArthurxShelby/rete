@@ -33,9 +33,9 @@ def init_supabase():
     url = st.secrets["SUPABASE_URL"]
     key = st.secrets["SUPABASE_KEY"]
     return create_client(url, key)
-  except Exception as e:
-    st.error(f"Errore lettura secret: {e}")
+  except Exception:
     return None
+
 
 supabase: Client = init_supabase()
 
