@@ -29,11 +29,13 @@ st.markdown("""
 
 @st.cache_resource
 def init_supabase():
-  url = st.secrets.get("SUPABASE_URL", "")
-  key = st.secrets.get("SUPABASE_KEY", "")
-  if url and key:
+  try:
+    url = st.secrets["SUPABASE_URL"]
+    key = st.secrets["SUPABASE_KEY"]
     return create_client(url, key)
-  return None
+  except Exception as e:
+    st.error(f"Errore lettura secret: {e}")
+    return None
 
 supabase: Client = init_supabase()
 
