@@ -1,0 +1,6 @@
+streamlit
+pandas
+supabase
+reportlab
+openpyxl
+fpdf2
