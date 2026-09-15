@@ -146,7 +146,7 @@ if "dati_caricati_da_supabase" not in st.session_state:
       st.write("🔍 **Debug Risposta Supabase:**", response)
       
       data = getattr(response, "data", [])
-      st.write(ോf"📊 **Record trovati:** {len(data)}")
+      st.write(f"📊 **Record trovati:** {len(data)}")
       
       if data:
         st.write("📝 **Primo record letto:**", data[0])
