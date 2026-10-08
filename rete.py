@@ -31,7 +31,8 @@ st.markdown("""
 def init_supabase():
   try:
     url = st.secrets["SUPABASE_URL"]
-    key = st.secrets["SUPABASE_KEY"]
+    # Utilizziamo la service_role_key per bypassare l'RLS attivata sulle tabelle
+    key = st.secrets["SUPABASE_SERVICE_ROLE_KEY"]
     return create_client(url, key)
   except Exception:
     return None
